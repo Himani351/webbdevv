@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StyleHub | Modern E-Commerce</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#2874f0', // Flipkart-ish blue
+                        secondary: '#fb641b', // Orange accent
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        /* Toast Animation */
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .toast-enter {
+            animation: slideIn 0.3s ease-out forwards;
+        }
+        
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        /* Range Slider Styling */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #2874f0;
+            cursor: pointer;
+            margin-top: -6px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <nav class="bg-primary sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center cursor-pointer" onclick="app.navigate('home')">
+                    <span class="text-white text-2xl font-bold italic">Style<span class="text-yellow-400">Hub</span></span>
+                </div>
+
+                <!-- Search (Desktop) -->
+                <div class="hidden md:flex flex-1 mx-8">
+                    <div class="relative w-full">
+                        <input type="text" placeholder="Search for products, brands and more" class="w-full py-2 px-4 rounded-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+                        <button class="absolute right-0 top-0 h-full px-4 text-primary font-bold">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Icons & Auth -->
+                <div class="flex items-center space-x-6">
+                    <div id="auth-buttons" class="hidden md:flex items-center space-x-4">
+                        <button onclick="app.navigate('login')" class="bg-white text-primary px-6 py-1 font-bold rounded-sm hover:bg-gray-100 transition">Login</button>
+                    </div>
+                    
+                    <div id="user-profile" class="hidden flex items-center space-x-2 text-white cursor-pointer group relative">
+                        <span id="username-display" class="font-medium">User</span>
+                        <i class="fas fa-chevron-down text-xs"></i>
+                        <!-- Dropdown -->
+                        <div class="absolute top-full right-0 mt-2 w-48 bg-white text-gray-800 rounded shadow-xl hidden group-hover:block border">
+                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 border-b">My Profile</a>
+                            <a href="#" onclick="app.logout()" class="block px-4 py-2 hover:bg-gray-50 text-red-500">Logout</a>
+                        </div>
+                    </div>
+
+                    <div class="relative cursor-pointer text-white flex items-center font-medium" onclick="app.navigate('cart')">
+                        <i class="fas fa-shopping-cart text-xl"></i>
+                        <span class="ml-2 hidden md:block">Cart</span>
+                        <span id="cart-count" class="absolute -top-2 left-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center border-2 border-primary">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mobile Search -->
+            <div class="md:hidden pb-3">
+                <input type="text" placeholder="Search products..." class="w-full py-2 px-4 rounded shadow-sm focus:outline-none">
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main id="main-content" class="flex-grow max-w-7xl mx-auto w-full p-2 md:p-4">
+        
+        <!-- View: Home -->
+        <div id="view-home" class="space-y-4">
+            <!-- Hero Banner -->
+            <div class="bg-white p-4 rounded shadow-sm overflow-hidden relative h-48 md:h-64 flex items-center bg-gradient-to-r from-blue-500 to-cyan-400 mb-6">
+                <div class="w-2/3 pl-6 text-white">
+                    <h2 class="text-3xl md:text-5xl font-bold mb-2">Summer Sale</h2>
+                    <p class="text-lg mb-4">Up to 70% Off on Top Brands</p>
+                    <button class="bg-white text-blue-600 px-6 py-2 font-bold rounded shadow hover:bg-gray-100">Shop Now</button>
+                </div>
+                <div class="w-1/3 flex justify-center">
+                    <i class="fas fa-tshirt text-9xl text-white opacity-50 transform -rotate-12"></i>
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-4">
+                <!-- Sidebar Filters (Desktop & Mobile) -->
+                <div class="w-full md:w-64 flex-shrink-0">
+                    <div class="bg-white shadow rounded-sm p-4 sticky top-20">
+                        <div class="flex justify-between items-center border-b pb-3 mb-3">
+                            <h2 class="text-lg font-bold text-gray-800">Filters</h2>
+                            <span class="text-xs text-primary font-bold cursor-pointer uppercase">Clear All</span>
+                        </div>
+
+                        <!-- Categories -->
+                        <div class="py-3 border-b">
+                            <h3 class="text-xs font-bold text-gray-500 uppercase mb-3">Categories</h3>
+                            <div class="flex flex-col space-y-2 text-sm text-gray-700">
+                                <label class="flex items-center space-x-2 cursor-pointer hover:text-primary">
+                                    <input type="checkbox" class="rounded text-primary focus:ring-0">
+                                    <span>Men's Fashion</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:text-primary">
+                                    <input type="checkbox" class="rounded text-primary focus:ring-0">
+                                    <span>Women's Fashion</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:text-primary">
+                                    <input type="checkbox" class="rounded text-primary focus:ring-0">
+                                    <span>Footwear</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:text-primary">
+                                    <input type="checkbox" class="rounded text-primary focus:ring-0">
+                                    <span>Electronics</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:text-primary">
+                                    <input type="checkbox" class="rounded text-primary focus:ring-0">
+                                    <span>Accessories</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Price -->
+                        <div class="py-4 border-b">
+                            <h3 class="text-xs font-bold text-gray-500 uppercase mb-3">Price</h3>
+                            <input type="range" min="0" max="1000" class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            <div class="flex justify-between mt-2 text-sm text-gray-600">
+                                <div class="border px-2 py-1 rounded bg-gray-50">Min</div>
+                                <div class="text-gray-400">to</div>
+                                <div class="border px-2 py-1 rounded bg-gray-50">Max</div>
+                            </div>
+                        </div>
+
+                        <!-- Brand -->
+                        <div class="py-4 border-b">
+                            <h3 class="text-xs font-bold text-gray-500 uppercase mb-3">Brand</h3>
+                            <div class="relative mb-3">
+                                <i class="fas fa-search absolute left-2 top-2 text-gray-400 text-xs"></i>
+                                <input type="text" placeholder="Search Brand" class="w-full pl-7 pr-2 py-1 text-sm border-b focus:outline-none focus:border-primary">
+                            </div>
+                            <div class="flex flex-col space-y-2 text-sm text-gray-700 max-h-32 overflow-y-auto">
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" class="rounded text-primary focus:ring-0">
+                                    <span>Nike</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" class="rounded text-primary focus:ring-0">
+                                    <span>Adidas</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" class="rounded text-primary focus:ring-0">
+                                    <span>Puma</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" class="rounded text-primary focus:ring-0">
+                                    <span>Levi's</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Customer Ratings -->
+                        <div class="py-4">
+                            <h3 class="text-xs font-bold text-gray-500 uppercase mb-3">Customer Ratings</h3>
+                            <div class="space-y-2 text-sm">
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" class="rounded text-primary focus:ring-0">
+                                    <span>4★ & above</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" class="rounded text-primary focus:ring-0">
+                                    <span>3★ & above</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Grid Area -->
+                <div class="flex-1">
+                    <div class="bg-white p-3 shadow-sm rounded-sm mb-4 flex justify-between items-center">
+                        <span class="font-bold text-gray-800">Clothing & Accessories</span>
+                        <div class="text-sm text-gray-600">
+                            Sort By: 
+                            <span class="font-bold text-primary cursor-pointer ml-2 border-b-2 border-primary pb-0.5">Popularity</span>
+                            <span class="cursor-pointer ml-3 hover:text-primary">Price -- Low to High</span>
+                            <span class="cursor-pointer ml-3 hover:text-primary">Price -- High to Low</span>
+                        </div>
+                    </div>
+                    <div id="product-grid" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        <!-- Products injected by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View: Product Detail -->
+        <div id="view-detail" class="hidden bg-white shadow rounded-sm min-h-[500px]">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-8 p-4">
+                <!-- Left: Image -->
+                <div class="relative flex flex-col items-center">
+                    <div class="w-full h-96 flex items-center justify-center border border-gray-100 p-4 mb-4">
+                        <img id="detail-image" src="" alt="Product" class="max-h-full object-contain hover:scale-105 transition duration-500">
+                    </div>
+                    <div class="flex w-full space-x-2">
+                        <button onclick="app.addToCartFromDetail()" class="flex-1 bg-yellow-500 text-white py-4 font-bold uppercase hover:shadow-lg transition flex items-center justify-center">
+                            <i class="fas fa-shopping-cart mr-2"></i> Add to Cart
+                        </button>
+                        <button class="flex-1 bg-secondary text-white py-4 font-bold uppercase hover:shadow-lg transition flex items-center justify-center">
+                            <i class="fas fa-bolt mr-2"></i> Buy Now
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right: Details -->
+                <div class="p-2 md:p-4">
+                    <button onclick="app.navigate('home')" class="text-gray-500 hover:text-primary mb-4 text-sm"><i class="fas fa-arrow-left"></i> Back to products</button>
+                    
+                    <h1 id="detail-title" class="text-2xl text-gray-800 font-medium mb-1">Product Title</h1>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <span class="bg-green-600 text-white text-xs px-2 py-0.5 rounded flex items-center">
+                            <span id="detail-rating">4.5</span> <i class="fas fa-star text-[10px] ml-1"></i>
+                        </span>
+                        <span class="text-gray-500 text-sm font-medium">2,345 Ratings & 145 Reviews</span>
+                    </div>
+
+                    <div class="mb-4">
+                        <span id="detail-price" class="text-3xl font-bold text-gray-900">$19.99</span>
+                        <span id="detail-original-price" class="text-gray-500 line-through ml-2 text-lg">$39.99</span>
+                        <span class="text-green-600 font-bold ml-2">50% off</span>
+                    </div>
+
+                    <!-- Size Selector -->
+                    <div class="mb-6">
+                        <h4 class="text-gray-500 font-bold text-sm mb-2">SELECT SIZE</h4>
+                        <div id="size-container" class="flex space-x-3">
+                            <!-- Sizes injected via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="border-t pt-4">
+                        <h4 class="text-gray-800 font-bold mb-2">Product Description</h4>
+                        <p id="detail-desc" class="text-gray-600 text-sm leading-relaxed">
+                            Full details...
+                        </p>
+                    </div>
+                    
+                    <div class="border-t mt-4 pt-4">
+                        <h4 class="text-gray-800 font-bold mb-2">Specifications</h4>
+                        <div class="grid grid-cols-2 gap-y-2 text-sm">
+                            <div class="text-gray-500">Material</div>
+                            <div class="text-gray-800">100% Cotton</div>
+                            <div class="text-gray-500">Fit</div>
+                            <div class="text-gray-800">Regular</div>
+                            <div class="text-gray-500">Wash Care</div>
+                            <div class="text-gray-800">Machine Wash</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View: Cart -->
+        <div id="view-cart" class="hidden">
+            <div class="flex flex-col lg:flex-row gap-4">
+                <!-- Cart Items -->
+                <div class="lg:w-2/3 bg-white shadow rounded-sm overflow-hidden">
+                    <div class="p-4 border-b">
+                        <h2 class="text-lg font-medium">My Cart</h2>
+                    </div>
+                    <div id="cart-items-container" class="divide-y divide-gray-100">
+                        <!-- Items injected via JS -->
+                        <div class="p-8 text-center text-gray-500">Your cart is empty</div>
+                    </div>
+                </div>
+
+                <!-- Price Details -->
+                <div class="lg:w-1/3 h-fit bg-white shadow rounded-sm p-4 sticky top-20">
+                    <h3 class="text-gray-500 font-bold border-b pb-2 mb-4">PRICE DETAILS</h3>
+                    <div class="space-y-3 mb-4">
+                        <div class="flex justify-between">
+                            <span>Price (<span id="cart-total-items">0</span> items)</span>
+                            <span id="cart-subtotal">$0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Discount</span>
+                            <span class="text-green-600">-$0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Delivery Charges</span>
+                            <span class="text-green-600">FREE</span>
+                        </div>
+                    </div>
+                    <div class="border-t border-dashed border-gray-300 py-4 flex justify-between font-bold text-lg">
+                        <span>Total Amount</span>
+                        <span id="cart-final-total">$0</span>
+                    </div>
+                    <button class="w-full bg-secondary text-white py-3 font-bold uppercase shadow hover:shadow-lg transition">
+                        Place Order
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- View: Login -->
+        <div id="view-login" class="hidden flex items-center justify-center min-h-[60vh]">
+            <div class="bg-white p-8 rounded shadow-lg w-full max-w-md border border-gray-100">
+                <h2 class="text-2xl font-bold text-primary mb-1">Login</h2>
+                <p class="text-gray-500 text-sm mb-6">Get access to your Orders, Wishlist and Recommendations</p>
+                <form onsubmit="app.handleLogin(event)">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                        <input type="email" required class="w-full px-3 py-2 border rounded focus:outline-none focus:border-primary" placeholder="Enter email">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                        <input type="password" required class="w-full px-3 py-2 border rounded focus:outline-none focus:border-primary" placeholder="Enter password">
+                    </div>
+                    <button type="submit" class="w-full bg-secondary text-white font-bold py-2 px-4 rounded hover:bg-orange-600 transition">
+                        Login
+                    </button>
+                </form>
+                <div class="mt-4 text-center text-sm">
+                    <span class="text-gray-600">New to StyleHub? </span>
+                    <span onclick="app.navigate('signup')" class="text-primary font-bold cursor-pointer hover:underline">Create an account</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- View: Signup -->
+        <div id="view-signup" class="hidden flex items-center justify-center min-h-[60vh]">
+            <div class="bg-white p-8 rounded shadow-lg w-full max-w-md border border-gray-100">
+                <h2 class="text-2xl font-bold text-primary mb-1">Sign Up</h2>
+                <p class="text-gray-500 text-sm mb-6">Looks like you're new here!</p>
+                <form onsubmit="app.handleSignup(event)">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Full Name</label>
+                        <input type="text" id="signup-name" required class="w-full px-3 py-2 border rounded focus:outline-none focus:border-primary" placeholder="Enter full name">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                        <input type="email" required class="w-full px-3 py-2 border rounded focus:outline-none focus:border-primary" placeholder="Enter email">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                        <input type="password" required class="w-full px-3 py-2 border rounded focus:outline-none focus:border-primary" placeholder="Enter password">
+                    </div>
+                    <button type="submit" class="w-full bg-primary text-white font-bold py-2 px-4 rounded hover:bg-blue-600 transition">
+                        Continue
+                    </button>
+                </form>
+                <div class="mt-4 text-center text-sm">
+                    <span class="text-gray-600">Existing User? </span>
+                    <span onclick="app.navigate('login')" class="text-primary font-bold cursor-pointer hover:underline">Log in</span>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-auto py-8">
+        <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8 text-sm">
+            <div>
+                <h3 class="text-gray-400 uppercase font-bold mb-4">About</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="hover:underline">Contact Us</a></li>
+                    <li><a href="#" class="hover:underline">About Us</a></li>
+                    <li><a href="#" class="hover:underline">Careers</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-gray-400 uppercase font-bold mb-4">Help</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="hover:underline">Payments</a></li>
+                    <li><a href="#" class="hover:underline">Shipping</a></li>
+                    <li><a href="#" class="hover:underline">Cancellation & Returns</a></li>
+                </ul>
+            </div>
+            <div class="md:col-span-2 border-l border-gray-700 pl-0 md:pl-8">
+                <h3 class="text-gray-400 uppercase font-bold mb-4">Mail Us:</h3>
+                <p class="text-gray-300">
+                    StyleHub Internet Private Limited,<br>
+                    Buildings Alyssa, Begonia &<br>
+                    Clove Embassy Tech Village,<br>
+                    Outer Ring Road, Devarabeesanahalli Village,<br>
+                    Bengaluru, 560103,<br>
+                    Karnataka, India
+                </p>
+            </div>
+        </div>
+        <div class="border-t border-gray-700 mt-8 pt-6 text-center text-gray-400 text-xs">
+            ©️ 2025 StyleHub. All rights reserved.
+        </div>
+    </footer>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
+
+    <script>
+        // --- DATA STORE ---
+        const products = [
+            { id: 1, name: "Men Regular Fit Solid Casual Shirt", price: 14.99, original: 29.99, image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&q=80&w=600", rating: 4.2, reviews: 340, description: "Crafted in a pure cotton fabric, this long-sleeved, regular-fit modern shirt offers superb comfort and an impeccable finish. A reliable option for business wear, the shirt features a modern kent collar and a chest pocket.", sizes: ['S', 'M', 'L', 'XL'] },
+            { id: 2, name: "Women Floral Print Maxi Dress", price: 25.50, original: 45.00, image: "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&q=80&w=600", rating: 4.7, reviews: 120, description: "This maxi dress is perfect for a summer day out. Features a beautiful floral print, V-neckline, and short sleeves. Made from breathable rayon fabric.", sizes: ['XS', 'S', 'M', 'L'] },
+            { id: 3, name: "Men Slim Fit Denim Jeans", price: 32.00, original: 64.00, image: "https://images.unsplash.com/photo-1542272454315-4c01d7abdf4a?auto=format&fit=crop&q=80&w=600", rating: 4.0, reviews: 500, description: "Dark blue wash 5-pocket jeans, lightly faded, has a button and zip closure, waistband with belt loops.", sizes: ['30', '32', '34', '36'] },
+            { id: 4, name: "Unisex Canvas Sneakers", price: 22.99, original: 35.00, image: "https://images.unsplash.com/photo-1560769629-975ec94e6a86?auto=format&fit=crop&q=80&w=600", rating: 4.5, reviews: 890, description: "A pair of round-toe canvas sneakers, has regular styling, lace-up detail. Canvas upper. Cushioned footbed. Textured and patterned outsole.", sizes: ['7', '8', '9', '10'] },
+            { id: 5, name: "Women Striped Cotton T-Shirt", price: 12.00, original: 18.00, image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&q=80&w=600", rating: 4.3, reviews: 210, description: "Navy Blue and White striped T-shirt, has a round neck, short sleeves. 100% Cotton.", sizes: ['S', 'M', 'L'] },
+            { id: 6, name: "Classic Leather Jacket", price: 89.99, original: 150.00, image: "https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?auto=format&fit=crop&q=80&w=600", rating: 4.8, reviews: 45, description: "Full grain leather jacket with zip closure and multiple pockets. Perfect for winter and riding.", sizes: ['M', 'L', 'XL'] },
+            { id: 7, name: "Sports Running Shoes", price: 45.99, original: 70.00, image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=600", rating: 4.6, reviews: 1024, description: "Lightweight running shoes with breathable mesh and high traction sole.", sizes: ['8', '9', '10', '11'] },
+            { id: 8, name: "Elegant Wrist Watch", price: 120.00, original: 150.00, image: "https://images.unsplash.com/photo-1524592094714-0f0654e20314?auto=format&fit=crop&q=80&w=600", rating: 4.9, reviews: 67, description: "Analog watch with leather strap. Water resistant up to 50m.", sizes: ['One Size'] }
+        ];
+
+        // --- APP LOGIC ---
+        const app = {
+            currentUser: null,
+            cart: [],
+            selectedSize: null,
+            currentProduct: null,
+
+            init() {
+                this.renderHome();
+                this.updateAuthUI();
+                
+                // Check local storage for session (Mock)
+                const savedUser = localStorage.getItem('sh_user');
+                if(savedUser) {
+                    this.currentUser = JSON.parse(savedUser);
+                    this.updateAuthUI();
+                }
+            },
+
+            // Navigation System
+            navigate(viewId) {
+                // Hide all views
+                document.querySelectorAll('main > div').forEach(el => el.classList.add('hidden'));
+                
+                // Show requested view
+                const view = document.getElementById(`view-${viewId}`);
+                if (view) view.classList.remove('hidden');
+
+                // Special handlers
+                if (viewId === 'cart') this.renderCart();
+                window.scrollTo(0,0);
+            },
+
+            // Render Product Grid
+            renderHome() {
+                const grid = document.getElementById('product-grid');
+                grid.innerHTML = products.map(product => `
+                    <div class="bg-white rounded hover:shadow-lg transition cursor-pointer border border-transparent hover:border-gray-200 group" onclick="app.openProduct(${product.id})">
+                        <div class="relative w-full pb-[120%] overflow-hidden">
+                            <img src="${product.image}" alt="${product.name}" class="absolute top-0 left-0 w-full h-full object-cover">
+                            <div class="absolute bottom-0 left-0 right-0 bg-white/90 p-2 transform translate-y-full group-hover:translate-y-0 transition duration-300">
+                                <p class="text-xs text-center font-bold text-gray-600">Quick View</p>
+                            </div>
+                        </div>
+                        <div class="p-3">
+                            <h3 class="font-medium text-sm text-gray-800 line-clamp-2 mb-1 group-hover:text-primary">${product.name}</h3>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-base font-bold">$${product.price}</span>
+                                <span class="text-xs text-gray-500 line-through">$${product.original}</span>
+                                <span class="text-xs text-green-600 font-bold">50% off</span>
+                            </div>
+                            <div class="mt-1 flex items-center">
+                                <span class="bg-green-600 text-white text-[10px] font-bold px-1 rounded flex items-center">
+                                    ${product.rating} <i class="fas fa-star ml-0.5 text-[8px]"></i>
+                                </span>
+                                <span class="text-gray-400 text-xs ml-1">(${product.reviews})</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            // Product Detail Logic
+            openProduct(id) {
+                const product = products.find(p => p.id === id);
+                if (!product) return;
+
+                this.currentProduct = product;
+                this.selectedSize = product.sizes[0]; // Default size
+
+                document.getElementById('detail-image').src = product.image;
+                document.getElementById('detail-title').innerText = product.name;
+                document.getElementById('detail-price').innerText = `$${product.price}`;
+                document.getElementById('detail-original-price').innerText = `$${product.original}`;
+                document.getElementById('detail-rating').innerText = product.rating;
+                document.getElementById('detail-desc').innerText = product.description;
+
+                // Render sizes
+                const sizeContainer = document.getElementById('size-container');
+                sizeContainer.innerHTML = product.sizes.map(size => `
+                    <button onclick="app.selectSize('${size}', this)" 
+                        class="border rounded-sm w-10 h-10 flex items-center justify-center font-bold text-sm transition ${size === this.selectedSize ? 'border-primary text-primary bg-blue-50' : 'border-gray-300 text-gray-600 hover:border-primary'}">
+                        ${size}
+                    </button>
+                `).join('');
+
+                this.navigate('detail');
+            },
+
+            selectSize(size, btnElement) {
+                this.selectedSize = size;
+                // Visual feedback logic
+                const container = document.getElementById('size-container');
+                Array.from(container.children).forEach(child => {
+                    child.classList.remove('border-primary', 'text-primary', 'bg-blue-50');
+                    child.classList.add('border-gray-300', 'text-gray-600');
+                });
+                btnElement.classList.remove('border-gray-300', 'text-gray-600');
+                btnElement.classList.add('border-primary', 'text-primary', 'bg-blue-50');
+            },
+
+            // Cart Logic
+            addToCartFromDetail() {
+                if(!this.currentUser) {
+                    this.showToast("Please login to add items to cart", "error");
+                    this.navigate('login');
+                    return;
+                }
+
+                const existingItem = this.cart.find(item => item.id === this.currentProduct.id && item.size === this.selectedSize);
+
+                if (existingItem) {
+                    existingItem.qty++;
+                } else {
+                    this.cart.push({
+                        ...this.currentProduct,
+                        size: this.selectedSize,
+                        qty: 1
+                    });
+                }
+                
+                this.updateCartCount();
+                this.showToast("Item added to cart successfully!");
+            },
+
+            updateCartCount() {
+                const count = this.cart.reduce((acc, item) => acc + item.qty, 0);
+                document.getElementById('cart-count').innerText = count;
+                document.getElementById('cart-total-items').innerText = count;
+            },
+
+            renderCart() {
+                const container = document.getElementById('cart-items-container');
+                let total = 0;
+
+                if (this.cart.length === 0) {
+                    container.innerHTML = `
+                        <div class="flex flex-col items-center justify-center py-10">
+                            <i class="fas fa-shopping-cart text-6xl text-gray-200 mb-4"></i>
+                            <p class="text-lg font-medium text-gray-600">Your cart is empty!</p>
+                            <button onclick="app.navigate('home')" class="mt-4 bg-primary text-white px-6 py-2 rounded shadow">Shop Now</button>
+                        </div>
+                    `;
+                    document.getElementById('cart-subtotal').innerText = "$0";
+                    document.getElementById('cart-final-total').innerText = "$0";
+                    return;
+                }
+
+                container.innerHTML = this.cart.map((item, index) => {
+                    total += item.price * item.qty;
+                    return `
+                    <div class="p-4 flex gap-4">
+                        <div class="w-20 h-20 flex-shrink-0">
+                            <img src="${item.image}" class="w-full h-full object-contain">
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-medium text-gray-800 line-clamp-1">${item.name}</h3>
+                            <div class="text-sm text-gray-500 mt-1">Size: ${item.size}</div>
+                            <div class="flex items-center space-x-2 mt-2">
+                                <span class="font-bold text-lg">$${(item.price * item.qty).toFixed(2)}</span>
+                                <span class="text-xs text-gray-400 line-through">$${(item.original * item.qty).toFixed(2)}</span>
+                            </div>
+                            <div class="flex items-center mt-3">
+                                <button onclick="app.changeQty(${index}, -1)" class="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 disabled:opacity-50" ${item.qty <= 1 ? 'disabled' : ''}>-</button>
+                                <span class="mx-3 font-medium border px-4 py-0.5 rounded-sm">${item.qty}</span>
+                                <button onclick="app.changeQty(${index}, 1)" class="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100">+</button>
+                                <button onclick="app.removeFromCart(${index})" class="ml-auto text-sm font-medium text-gray-800 hover:text-red-500 uppercase">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                `}).join('');
+
+                document.getElementById('cart-subtotal').innerText = `$${total.toFixed(2)}`;
+                document.getElementById('cart-final-total').innerText = `$${total.toFixed(2)}`;
+            },
+
+            changeQty(index, change) {
+                this.cart[index].qty += change;
+                if (this.cart[index].qty < 1) this.cart[index].qty = 1;
+                this.renderCart();
+                this.updateCartCount();
+            },
+
+            removeFromCart(index) {
+                this.cart.splice(index, 1);
+                this.renderCart();
+                this.updateCartCount();
+                this.showToast("Item removed from cart");
+            },
+
+            // Auth Logic
+            handleLogin(e) {
+                e.preventDefault();
+                // Mock Login
+                this.currentUser = { name: "John Doe", email: "john@example.com" };
+                localStorage.setItem('sh_user', JSON.stringify(this.currentUser));
+                this.updateAuthUI();
+                this.navigate('home');
+                this.showToast(`Welcome back, ${this.currentUser.name}!`);
+            },
+
+            handleSignup(e) {
+                e.preventDefault();
+                const name = document.getElementById('signup-name').value;
+                this.currentUser = { name: name, email: "user@example.com" };
+                localStorage.setItem('sh_user', JSON.stringify(this.currentUser));
+                this.updateAuthUI();
+                this.navigate('home');
+                this.showToast("Account created successfully!");
+            },
+
+            logout() {
+                this.currentUser = null;
+                this.cart = []; // clear cart on logout for demo
+                localStorage.removeItem('sh_user');
+                this.updateAuthUI();
+                this.updateCartCount();
+                this.showToast("Logged out successfully");
+            },
+
+            updateAuthUI() {
+                if (this.currentUser) {
+                    document.getElementById('auth-buttons').classList.add('hidden');
+                    document.getElementById('user-profile').classList.remove('hidden');
+                    document.getElementById('username-display').innerText = this.currentUser.name.split(' ')[0];
+                } else {
+                    document.getElementById('auth-buttons').classList.remove('hidden');
+                    document.getElementById('user-profile').classList.add('hidden');
+                }
+            },
+
+            // Utility
+            showToast(message, type = "success") {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                
+                const bgColor = type === "error" ? "bg-red-500" : "bg-gray-800";
+                
+                toast.className = `${bgColor} text-white px-6 py-3 rounded shadow-lg flex items-center gap-3 toast-enter min-w-[200px]`;
+                toast.innerHTML = `
+                    <i class="fas ${type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i>
+                    <span class="font-medium text-sm">${message}</span>
+                `;
+                
+                container.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateY(20px)';
+                    toast.style.transition = 'all 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+        };
+
+        // Initialize App
+        app.init();
+    </script>
+</body>
+</html>
